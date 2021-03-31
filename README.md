@@ -49,9 +49,13 @@ Subset by chromosome.
 ```
 mkdir parts
 ( seq 22; echo X; echo Y; echo M ) | while read i; do awk '$6 ~ "chr'$i'$"' $(ls HPRCy1v2_wfmash-m.1/*.vs.ref.paf | sort) | cut -f 1 | sort >parts/chr$i.contigs; done
-( seq 22; echo X; echo Y; echo M ) | while read i; do sbatch -p lowmem -c 16 --wrap './collect.sh '$i' >parts/chr'$i'.pan.fa && samtools faidx parts/chr'$i'.pan.fa' ; done >parts.jobids
+( seq 22; echo X; echo Y ) | while read i; do sbatch -p lowmem -c 16 --wrap './collect.sh '$i' >parts/chr'$i'.pan.fa && samtools faidx parts/chr'$i'.pan.fa' ; done >parts.jobids
+# special handling of chrM
+( samtools faidx assemblies/chm13.fa chm13#chrM; samtools faidx assemblies/grch38.fa grch38#chrM; cat haps.list | grep -v HG002 | grep -v HG005 | grep -v NA19240 | cut -f 1 -d . | sort | uniq  | while read f; do samtools faidx $(ls assemblies/*maternal*fa | grep $f) $f
+#2#MT; done) >parts/chrM.pan.fa && samtools faidx parts/chrM.pan.fa
+# make a combined X+Y
+cat parts/chrX.pan.fa parts/chrY.pan.fa >parts/chrXY.pan.fa && samtools index parts/chrXY.pan.fa
 ```
 
 This results in chromosome-specific FASTAs in `parts/chr*.pan.fa`.
 
-We additionally combine chrX and chrY into `chrXY.pan.fa`, as these contain homologous recombining regions.
