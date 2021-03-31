@@ -48,7 +48,7 @@ Subset by chromosome.
 
 ```
 mkdir parts
-( seq 22; echo X; echo Y; echo M ) | while read i; do awk '$6 ~ "chr'$i'$"' $(ls HPRCy1v2_wfmash-m.1/*.vs.ref.paf | sort -V) | cut -f 1 | sort -V >parts/chr$i.contigs; done
+( seq 22; echo X; echo Y; echo M ) | while read i; do awk '$6 ~ "chr'$i'$"' $(ls HPRCy1v2_wfmash-m.1/*.vs.ref.paf | sort) | cut -f 1 | sort >parts/chr$i.contigs; done
 ( seq 22; echo X; echo Y; echo M ) | while read i; do sbatch -p lowmem -c 16 --wrap './collect.sh '$i' >parts/chr'$i'.pan.fa && samtools faidx parts/chr'$i'.pan.fa' ; done >parts.jobids
 ```
 
