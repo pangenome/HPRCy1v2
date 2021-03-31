@@ -59,3 +59,8 @@ cat parts/chrX.pan.fa parts/chrY.pan.fa >parts/chrXY.pan.fa && samtools index pa
 
 This results in chromosome-specific FASTAs in `parts/chr*.pan.fa`.
 
+We now apply pggb:
+
+```
+( echo 16; seq 1 5; echo 8; echo 20; echo 9; echo 6; echo 17; echo 7; seq 10 15; echo X; seq 18 19; seq 21 22; echo XY; echo Y; echo M ) | while read i; do sbatch -p debug -c 48 --wrap 'cd /scratch && pggb -t 48 -i /lizardfs/erikg/HPRC/year1v2/parts/chr'$i'.pan.fa -Y "#" -p 98 -s 100000 -l 300000 -n 20 -k 127 -B 20000000 -w 200000 -j 100 -e 100000 -I 0.95 -R 0.05 --poa-params 1,7,11,2,33,1 -v -C 100,1000,10000 -Q Consensus_chr'$i'_ -o chr'$i'.pan -Z ; mv /scratch/chr'$i'.pan '$(pwd); done >pggb.jobids
+```
