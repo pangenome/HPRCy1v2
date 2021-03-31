@@ -29,8 +29,6 @@ Combine them into a single reference for competitive assignment of sample contig
 zcat chm13.fa.gz grch38.fna.gz >chm13+grch38.pan.fa && samtools faidx chm13+grch38.pan.fa
 ```
 
-/gnu/store/hf8dgf64nf7qlc8k2cvm0cwhgyrmx0a9-wfmash-0.3.1+a932d64-12/bin/wfmash
-
 Partition the assembly contigs by chromosome by mapping each assembly against the scaffolded references, and then subsetting the graph. Here we use wfmash for the mapping.
 
 ```
@@ -43,7 +41,7 @@ do
     in=assemblies/$(ls assemblies | grep $hap | grep .fa$)                  
     out=HPRCy1v2_wfmash-m.1/$hap.vs.ref.paf
     sbatch -p lowmem -c 16 --wrap "$aligner -t 16 -m -N -p 90 $ref $in >$out" >>partition.jobids
-done                                                                                                                                                                                                                                                                        <....
+done
 ```
 
 Subset by chromosome.
