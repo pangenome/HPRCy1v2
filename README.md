@@ -11,7 +11,7 @@ get the urls of the assemblies
 download them
 
 ```
-mkdir assemblien
+mkdir assemblies
 cd assemblies
 cat ../refs.urls ../samples.urls | parallel -j 4 'wget -q {} && echo got {}'
 ```
