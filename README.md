@@ -1,6 +1,6 @@
 # build log
 
-get the urls of the assemblies
+Get the URLs of the assemblies:
 
 ```
 </lizardfs/erikg/HPRC/HPP_Year1_Assemblies/assembly_index/Year1_assemblies_v2.index grep 'chm13\|h38' | awk '{ print $2 }' | sed 's%s3://human-pangenomics/working/%https://s3-us-west-2.amazonaws.com/human-pangenomics/working/%g' >refs.urls
@@ -8,7 +8,7 @@ get the urls of the assemblies
 </lizardfs/erikg/HPRC/HPP_Year1_Assemblies/assembly_index/Year1_assemblies_v2.index grep -v 'chm13\|h38' | awk '{ print $2; print $3 }' | sed 's%s3://human-pangenomics/working/%https://s3-us-west-2.amazonaws.com/human-pangenomics/working/%g' >samples.urls
 ```
 
-download them
+Download them:
 
 ```
 mkdir assemblies
@@ -16,20 +16,20 @@ cd assemblies
 cat ../refs.urls ../samples.urls | parallel -j 4 'wget -q {} && echo got {}'
 ```
 
-add prefix to ref seqs
+Add a prefix to the reference sequences:
 
 ```
 ( fastix -p 'grch38#' <(zcat GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz) | bgzip >grch38.fna.gz && samtools faidx grch38.fna.gz ) &
 ( fastix -p 'chm13#' <(zcat chm13.draft_v1.0.fasta.gz) | bgzip >chm13.fa.gz && samtools faidx chm13.fa.gz ) &
 ```
 
-Combine them into a single reference for competitive assignment of sample contigs to chromosome bins.
+Combine them into a single reference for competitive assignment of sample contigs to chromosome bins:
 
 ```
 zcat chm13.fa.gz grch38.fna.gz >chm13+grch38.pan.fa && samtools faidx chm13+grch38.pan.fa
 ```
 
-Partition the assembly contigs by chromosome by mapping each assembly against the scaffolded references, and then subsetting the graph. Here we use wfmash for the mapping.
+Partition the assembly contigs by chromosome by mapping each assembly against the scaffolded references, and then subsetting the graph. Here we use wfmash for the mapping:
 
 ```
 cd ..
@@ -44,7 +44,7 @@ do
 done
 ```
 
-Subset by chromosome.
+Subset by chromosome:
 
 ```
 mkdir parts
