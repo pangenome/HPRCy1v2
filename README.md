@@ -69,7 +69,7 @@ We now apply [pggb](https://github.com/pangenome/pggb):
 
 :information_source: We want to measure the reconstruction accuracy of the built pangenome graph using [pgge](https://github.com/pangenome/pgge). Therefore, we align the sequences of samples to the built pangenome graph. Samples `HG002, HG005, NA19240` were left out during pangenome graph construction. Samples `chm13, HG02630, HG02080, HG02486` were part of the building process.
 
-Fetch sequences of samples HG002, HG005, NA19240 that were left out during building:
+Fetch sequences of samples HG002, HG005, NA19240:
 
 ```
 ( seq 22; echo X; echo Y; echo M ) | while read i; do ./collect_HG002.HG005.NA19240.sh "$i" > parts_eval/chr"$i".HG002.HG005.NA19240.fa && samtools faidx parts_eval/chr"$i".HG002.HG005.NA19240.fa ; done
@@ -91,7 +91,7 @@ We now apply [pgge](https://github.com/pangenome/pgge):
 pgge -g "*.consensus*.gfa" -f ../../parts_eval/HG002.HG005.NA19240/chr8.HG002.HG005.NA19240.fa -o pgge_out.37_chr8_HG002.HG005.NA19240_vg -r ~/software/pgge/git/master/scripts/beehave.R -l 100000 -s 100000 -t 28
 ```
 
-Fetch sequences of samples chm13.HG02630.HG02080.HG02486
+Fetch sequences of samples chm13, HG02630, HG02080, HG02486:
 
 ```
 ( seq 22; echo X; echo Y; echo M ) | while read i; do ./collect_chm13.HG02630.HG02080.HG02486.sh "$i" > parts_eval/chr"$i".chm13.HG02630.HG02080.HG02486.fa && samtools faidx parts_eval/chr"$i".chm13.HG02630.HG02080.HG02486.fa ; done
