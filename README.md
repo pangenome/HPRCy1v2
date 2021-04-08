@@ -64,3 +64,52 @@ We now apply [pggb](https://github.com/pangenome/pggb):
 ```
 ( echo 16; seq 1 5; echo 8; echo 20; echo 9; echo 6; echo 17; echo 7; seq 10 15; echo X; seq 18 19; seq 21 22; echo XY; echo Y; echo M ) | while read i; do sbatch -p debug -c 48 --wrap 'cd /scratch && pggb -t 48 -i /lizardfs/erikg/HPRC/year1v2/parts/chr'$i'.pan.fa -Y "#" -p 98 -s 100000 -l 300000 -n 20 -k 127 -B 20000000 -w 200000 -j 100 -e 100000 -I 0.95 -R 0.05 --poa-params 1,7,11,2,33,1 -v -C 100,1000,10000 -Q Consensus_chr'$i'_ -o chr'$i'.pan -Z ; mv /scratch/chr'$i'.pan '$(pwd); done >pggb.jobids
 ```
+
+# evaluation log
+
+:information_source: We want to measure the reconstruction accuracy of the built pangenome graph using [pgge](https://github.com/pangenome/pgge). Therefore, we align the sequences of samples to the built pangenome graph. Samples `HG002, HG005, NA19240` were left out during pangenome graph construction. Samples `chm13, HG02630, HG02080, HG02486` were part of the building process.
+
+Fetch sequences of samples HG002, HG005, NA19240:
+
+```
+( seq 22; echo X; echo Y; echo M ) | while read i; do ./collect_HG002.HG005.NA19240.sh "$i" > parts_eval/chr"$i".HG002.HG005.NA19240.fa && samtools faidx parts_eval/chr"$i".HG002.HG005.NA19240.fa ; done
+```
+This results in chromosome-specific FASTAs in `parts_eval/chr*.HG002.HG005.NA19240.fa`.
+
+Combine into pangenome sequence:
+```
+cat parts_eval/*.fa > parts_eval/pan.HG002.HG005.NA19240.fa && samtools faidx parts_eval/pan.HG002.HG005.NA19240.fa
+```
+Move into its own folder:
+```
+mkdir parts_eval/HG002.HG005.NA19240
+mv parts_eval/* parts_eval/HG002.HG005.NA19240/
+```
+
+We now apply [pgge](https://github.com/pangenome/pgge):
+```
+pgge -g "*.consensus*.gfa" -f ../../parts_eval/HG002.HG005.NA19240/chr8.HG002.HG005.NA19240.fa -o pgge_out.37_chr8_HG002.HG005.NA19240_vg -r ~/software/pgge/git/master/scripts/beehave.R -l 100000 -s 100000 -t 28
+```
+
+Fetch sequences of samples chm13, HG02630, HG02080, HG02486:
+
+```
+( seq 22; echo X; echo Y; echo M ) | while read i; do ./collect_chm13.HG02630.HG02080.HG02486.sh "$i" > parts_eval/chr"$i".chm13.HG02630.HG02080.HG02486.fa && samtools faidx parts_eval/chr"$i".chm13.HG02630.HG02080.HG02486.fa ; done
+```
+This results in chromosome-specific FASTAs in `parts_eval/chr*.chm13.HG02630.HG02080.HG02486.fa`.
+
+Combine into pangenome sequence:
+```
+cat parts_eval/*.fa > parts_eval/pan.chm13.HG02630.HG02080.HG02486.fa && samtools faidx parts_eval/pan.chm13.HG02630.HG02080.HG02486.fa
+```
+Move into its own folder:
+```
+mkdir parts_eval/chm13.HG02630.HG02080.HG02486
+mv parts_eval/* parts_eval/chm13.HG02630.HG02080.HG02486/
+mv parts_eval/chm13.HG02630.HG02080.HG02486/HG002.HG005.NA19240/ parts_eval/
+```
+
+We now apply [pgge](https://github.com/pangenome/pgge):
+```
+pgge -g "*.consensus*.gfa" -f ../../parts_eval/chm13.HG02630.HG02080.HG02486/chr8.chm13.HG02630.HG02080.HG02486.fa -o pgge_out.39_chr8_chm13.HG02630.HG02080.HG02486 -r /home/ubuntu/sh/git/pgge/scripts/beehave.R -t 28 -s 100000 -l 100000
+```
