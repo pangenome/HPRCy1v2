@@ -60,6 +60,6 @@ TEMPDIR=$(pwd) vg convert -t $threads -g -x $burned_gfa >$burned_xg
 echo "building VCF from $burned_xg"
 burned_vcf=$(basename $burned .og).vcf
 vg deconstruct -P $ref \
-   $(for i in $(odgi paths -i $f -L | grep -v Cons | cut -f 1,2 -d '#' | sort | uniq ); \
+   $(for i in $(odgi paths -i $f -L | grep -v Cons | cut -f 1 -d '#' | sort | uniq ); \
      do echo -n ' -A '$i; done) \
    -e -a -t $threads $burned_xg >$burned_vcf
