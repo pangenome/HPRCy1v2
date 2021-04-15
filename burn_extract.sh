@@ -15,6 +15,7 @@ highcov_spec=$6
 min_highcov=$7
 # 10000:100:100000000
 highdeg_spec=$8
+hap_names=$9
 
 echo "extracting low-coverage regions in $f"
 odgi depth -i $f -s <(odgi paths -i $f -L | grep -v Cons) \
@@ -38,7 +39,9 @@ odgi extract -i $f -t $threads -P \
               bedtools sort | bedtools merge) \
      -R <(odgi paths -i $f -L | grep '^'$ref) -o - | \
      odgi sort -i - -o - -O | \
-     odgi sort -p Ygs -i - -o $burned -t $threads -P
+     odgi explode -i - -p $burned.exp -b 1 -s P -O
+odgi sort -p Y -i $burned.exp.0.og -o $burned -t $threads -P
+rm -f $burned.exp.0.og
 
 echo "primary stats for $burned"
 odgi stats -i $burned -S | column -t
@@ -48,6 +51,10 @@ odgi depth -i $burned -S | column -t
 
 echo "degree stats for $burned"
 odgi degree -i $burned -S | column -t
+
+echo "generating odgi viz for $burned"
+odgi viz -i $burned -x 1500 -y 500 -o $burned.viz.png \
+     -p <(odgi paths -i $burned -L | grep -v Cons) -M $hap_names
 
 echo "generating GFA for $burned"
 burned_gfa=$(basename $burned .og).gfa
