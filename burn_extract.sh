@@ -40,8 +40,9 @@ odgi extract -i $f -t $threads -P \
      -R <(odgi paths -i $f -L | grep '^'$ref) -o - | \
      odgi sort -i - -o - -O | \
      odgi explode -i - -p $burned.exp -b 1 -s P -O
-odgi sort -p Y -i $burned.exp.0.og -o $burned -t $threads -P
-rm -f $burned.exp.0.og
+bigcomp=$(ls *.exp.*.og | tail -1)
+odgi sort -p Y -i $bigcomp -o $burned -t $threads -P
+rm -f $bigcomp
 
 echo "primary stats for $burned"
 odgi stats -i $burned -S | column -t
