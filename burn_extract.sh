@@ -9,13 +9,11 @@ threads=$3
 lowcov_spec=$4
 # 10000
 min_lowcov=$5
-# 100000:1000:100000000
+# 100000:5000:100000000
 highcov_spec=$6
 # 100000
 min_highcov=$7
-# 10000:100:100000000
-highdeg_spec=$8
-hap_names=$9
+hap_names=$8
 
 echo "extracting low-coverage regions in $f"
 odgi depth -i $f -s <(odgi paths -i $f -L | grep -v Cons) \
@@ -25,17 +23,12 @@ echo "extracting high-coverage regions in $f"
 odgi depth -i $f -s <(odgi paths -i $f -L | grep -v Cons) \
      -w $highcov_spec -t $threads >$f.highcov.bed
 
-echo "extracting high-degree regions in $f"
-odgi degree -i $f \
-     -w $highdeg_spec -t $threads >$f.highdeg.bed
-
 echo "burning low/high regions from $f"
 burned=$(basename $f .og).burn.og
 odgi extract -i $f -t $threads -P \
      --inverse \
      -b <((awk '$3 - $2 > '$min_lowcov $f.lowcov.bed ; \
-           awk '$3 - $2 > '$min_highcov $f.highcov.bed ;
-           awk 'NR > 1' $f.highdeg.bed ) | \
+           awk '$3 - $2 > '$min_highcov $f.highcov.bed ) | \
               bedtools sort | bedtools merge) \
      -R <(odgi paths -i $f -L | grep '^'$ref) -o - | \
      odgi sort -i - -o - -O | \
