@@ -31,7 +31,6 @@ odgi extract -i $f -t $threads -P \
            awk '$3 - $2 > '$min_highcov $f.highcov.bed ) | \
               bedtools sort | bedtools merge) \
      -R <(odgi paths -i $f -L | grep '^'$ref) -o - | \
-     odgi sort -i - -o - -O | \
      odgi explode -i - -p $burned.exp -b 1 -s P -O
 bigcomp=$(ls *.exp.*.og | tail -1)
 odgi sort -p Y -i $bigcomp -o $burned -t $threads -P
