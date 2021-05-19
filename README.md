@@ -20,27 +20,53 @@ Add a prefix to the reference sequences:
 
 ```
 ( fastix -p 'grch38#' <(zcat GCA_000001405.15_GRCh38_no_alt_analysis_set.fna.gz) | bgzip >grch38.fna.gz && samtools faidx grch38.fna.gz ) &
-( fastix -p 'chm13#' <(zcat chm13.draft_v1.0.fasta.gz) | bgzip >chm13.fa.gz && samtools faidx chm13.fa.gz ) &
+( fastix -p 'chm13#' <(zcat chm13.draft_v1.1.fasta.gz) | bgzip >chm13.fa.gz && samtools faidx chm13.fa.gz ) &
 ```
 
 Combine them into a single reference for competitive assignment of sample contigs to chromosome bins:
 
 ```
-zcat chm13.fa.gz grch38.fna.gz >chm13+grch38.pan.fa && samtools faidx chm13+grch38.pan.fa
+zcat chm13.fa.gz grch38.fna.gz >chm13+grch38_full.pan.fa && samtools faidx chm13+grch38_full.pan.fa
+```
+
+Remove unplaced contigs from grch38 that are (hopefully) represented in chm13:
+
+```
+samtools faidx chm13+grch38_full.pan.fa $(cat chm13+grch38_full.pan.fa.fai | cut -f 1 | grep -v _ ) >chm13+grch38.pan.fa && samtools faidx chm13+grch38.pan.fa
+cd ..
 ```
 
 Partition the assembly contigs by chromosome by mapping each assembly against the scaffolded references, and then subsetting the graph. Here we use [wfmash](https://github.com/ekg/wfmash) for the mapping:
 
 ```
-cd ..
-mkdir HPRCy1v2_wfmash-m.1
+dir=HPRCy1v2_wfmash-m
+mkdir -p $dir
 ref=assemblies/chm13+grch38.pan.fa
-aligner=/gnu/store/lkdmq6mgqv3hmg4l1nmad34c536y2ga8-wfmash-0.3.1+e89867d-15/bin/wfmash
+aligner=/gnu/store/8zs480nglbdcfl86prj5innnhlc1cvl1-wfmash-0.5.0+37b9e71-1/bin/wfmash
 for hap in $(cat haps.list);
 do
-    in=assemblies/$(ls assemblies | grep $hap | grep .fa$)                  
-    out=HPRCy1v2_wfmash-m.1/$hap.vs.ref.paf
-    sbatch -p lowmem -c 16 --wrap "$aligner -t 16 -m -N -p 90 $ref $in >$out" >>partition.jobids
+    in=assemblies/$(ls assemblies | grep $hap | grep .fa$)
+    out=$dir/$hap.vs.ref.paf
+    sbatch -c 16 --wrap "$aligner -t 16 -m -N -s 50000 -p 90 $ref $in >$out" >>partition.jobids
+done
+```
+
+Collect unmapped contigs and remap them in split mode:
+
+```
+dir=HPRCy1v2_wfmash-m
+ref=assemblies/chm13+grch38.pan.fa
+aligner=/gnu/store/8zs480nglbdcfl86prj5innnhlc1cvl1-wfmash-0.5.0+37b9e71-1/bin/wfmash
+for hap in $(cat haps.list);
+do
+    in=assemblies/$(ls assemblies | grep $hap | grep .fa$)
+    paf=$dir/$hap.vs.ref.paf
+    out=$dir/$hap.unaligned
+    comm -23 <(cut -f 1 $in.fai | sort) <(cut -f 1 $paf | sort) >$out.txt
+    samtools faidx $in $(tr '\n' ' ' <$out.txt) >$out.fa
+    samtools faidx $out.fa
+    sbatch -c 16 --wrap "$aligner -t 16 -m -s 50000 -p 90 $ref $out.fa >$out.split.vs.ref.paf" >>partition.jobids
+    echo $hap
 done
 ```
 
